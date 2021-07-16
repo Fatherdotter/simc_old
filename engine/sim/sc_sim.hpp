@@ -431,6 +431,11 @@ struct sim_t : private sc_thread_t
     double shredded_soul_pickup_chance = 1.0;
     /// Sets the average number of times per minute that the Valiant Strikes soulbind will attempt to heal a player.
     double valiant_strikes_heal_rate = 1.0;
+    /// Type stat gained from So'leah's Secret Technique
+    /// Buff type: "mastery", "haste", "crit", "versatility"
+    std::string soleahs_secret_technique_type = "haste";
+    /// How long before combat to start channeling Shadowed Orb of Torment
+    timespan_t shadowed_orb_of_torment_precombat_channel = 0_ms;
   } shadowlands_opts;
 
   // Auras and De-Buffs
@@ -546,6 +551,8 @@ struct sim_t : private sc_thread_t
   std::map<std::string, std::vector<std::string> > chart_data;
 
   bool chart_show_relative_difference;
+  // Use the max metric actor as the relative difference base instead of the min
+  bool relative_difference_from_max;
   // Which actor to use as the base for computing relative difference.
   std::string relative_difference_base;
   double chart_boxplot_percentile;

@@ -2034,6 +2034,10 @@ void player_t::init_special_effects()
   }
 }
 
+void player_t::init_special_effect( special_effect_t& /* effect */ )
+{
+}
+
 namespace
 {
 /**
@@ -3962,6 +3966,9 @@ double player_t::composite_player_pet_damage_multiplier( const action_state_t*, 
 
   m *= 1.0 + racials.command->effectN( 1 ).percent();
 
+  if ( buffs.coldhearted && buffs.coldhearted->check() )
+    m *= 1.0 + buffs.coldhearted->check_value();
+
   // By default effect 1 is used for the player modifier, effect 2 is for the pet modifier
   if ( buffs.battlefield_presence && buffs.battlefield_presence->check() )
     m *=
@@ -4039,7 +4046,15 @@ double player_t::composite_player_target_multiplier( player_t* target, school_e 
     double health_threshold = 100.0 - ( 100.0 - buffs.wild_hunt_tactics->data().effectN( 5 ).base_value() ) * sim->shadowlands_opts.wild_hunt_tactics_duration_multiplier;
     // This buff is never triggered so use default_value.
     if ( target->health_percentage() > health_threshold )
+    {
+      // WHS is triggered when you cast something that gets the damage benefit from WHT
+      if ( buffs.wild_hunt_strategem_tracking )
+      {
+        buffs.wild_hunt_strategem_tracking->trigger();
+      }
+    
       m *= 1.0 + buffs.wild_hunt_tactics->default_value;
+    }
   }
 
   auto td = find_target_data( target );
@@ -4054,6 +4069,7 @@ double player_t::composite_player_target_multiplier( player_t* target, school_e 
     m *= 1.0 + td->debuff.scouring_touch->check_stack_value();
     m *= 1.0 + td->debuff.exsanguinated->check_value();
     m *= 1.0 + td->debuff.kevins_wrath->check_value();
+    m *= 1.0 + td->debuff.wild_hunt_strategem->check_value();
   }
 
   return m;
@@ -6000,6 +6016,9 @@ bool player_t::resource_available( resource_e resource_type, double cost ) const
 
 void player_t::recalculate_resource_max( resource_e resource_type, gain_t* source )
 {
+  double old_amount = resources.current[ resource_type ];
+  double old_max    = resources.max[ resource_type ];
+
   resources.max[ resource_type ] = resources.base[ resource_type ];
   resources.max[ resource_type ] *= resources.base_multiplier[ resource_type ];
   resources.max[ resource_type ] += total_gear.resource[ resource_type ];
@@ -6030,6 +6049,10 @@ void player_t::recalculate_resource_max( resource_e resource_type, gain_t* sourc
     source->add( resource_type, 0, resources.current[ resource_type ] - resources.max[ resource_type ] );
   }
   resources.current[ resource_type ] = std::min( resources.current[ resource_type ], resources.max[ resource_type ] );
+
+  sim->print_debug( "Recalculated maximum {} for {}: old={:.2f}/{:.2f}, new={:.2f}/{:.2f}",
+                    util::resource_type_string( resource_type ), name(), old_amount, old_max,
+                    resources.current[ resource_type ], resources.max[ resource_type ] );
 }
 
 role_e player_t::primary_role() const
@@ -10294,6 +10317,18 @@ std::unique_ptr<expr_t> player_t::create_expression( util::string_view expressio
       }
 
       throw std::invalid_argument( fmt::format( "Unsupported bfa. option '{}'.", splits[ 1 ] ) );
+    }
+
+    if ( splits[ 0 ] == "shadowlands" )
+    {
+      if ( splits[ 1 ] == "shadowed_orb_of_torment_precombat_channel" )
+      {
+        return make_fn_expr( expression_str, [this] {
+          return sim->shadowlands_opts.shadowed_orb_of_torment_precombat_channel.total_seconds();
+        } );
+      }
+
+      throw std::invalid_argument( fmt::format( "Unsupported shadowlands. option '{}'.", splits[ 1 ] ) );
     }
   } // splits.size() == 2
 

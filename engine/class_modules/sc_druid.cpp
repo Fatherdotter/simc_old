@@ -275,6 +275,7 @@ public:
   int initial_moon_stage;
   double eclipse_snapshot_period;  // how often to re-snapshot mastery onto eclipse
   bool affinity_resources;  // activate resources tied to affinities
+  double initial_pulsar_value;
 
   // APL options
   bool catweave_bear;
@@ -794,8 +795,9 @@ public:
       kindred_affinity_covenant( "night_fae" ),
       convoke_the_spirits_ultimate( 0 ),
       convoke_the_spirits_deck( 5 ),
-      celestial_spirits_exceptional_chance( bugs ? 0.75 : 1.0 ),
+      celestial_spirits_exceptional_chance( 0.85 ),
       adaptive_swarm_jump_distance( 5.0 ),
+      initial_pulsar_value( 0.0 ),
       active( active_actions_t() ),
       force_of_nature(),
       caster_form_weapon(),
@@ -1770,10 +1772,12 @@ public:
       free_cast = free_cast_e::NONE;
     }
     else
+    {
       ab::execute();
 
-    if ( !ab::background && ab::trigger_gcd > 0_ms && p()->buff.ravenous_frenzy->check() )
-      p()->buff.ravenous_frenzy->trigger();
+      if ( !ab::background && ab::trigger_gcd > 0_ms && p()->buff.ravenous_frenzy->check() )
+        p()->buff.ravenous_frenzy->trigger();
+    }
   }
 
   void schedule_travel( action_state_t* s ) override
@@ -3747,14 +3751,17 @@ struct rake_t : public cat_attack_t
   };
 
   action_t* bleed;
-  bool stealth_mul;
+  double stealth_mul;
 
   rake_t( druid_t* p, util::string_view opt ) : rake_t( p, p->find_affinity_spell( "Rake" ), opt ) {}
 
   rake_t( druid_t* p, const spell_data_t* s, util::string_view opt )
     : cat_attack_t( "rake", p, s, opt ), stealth_mul( 0.0 )
   {
-    if ( p->find_rank_spell( "Rake", "Rank 2" )->ok() )
+    // if ( p->find_rank_spell( "Rake", "Rank 2" )->ok() )
+    // The stealth bonsu is always available to Rake, as you need to be a feral druid or have feral affinity to use
+    // rake, and in both cases you have access to Rank 2 Rake. The only restriction is the level requirement.
+    if ( p->find_spell( 231052 )->ok() )
       stealth_mul = data().effectN( 4 ).percent();
 
     bleed = p->get_secondary_action<rake_bleed_t>( "rake_bleed" );
@@ -4793,6 +4800,15 @@ struct rejuvenation_t : public druid_heal_t
   {
     tick_zero = true;
   }
+};
+
+// Remove Corruption ========================================================
+
+struct remove_corruption_t : public druid_heal_t
+{
+  remove_corruption_t( druid_t* p, util::string_view options_str )
+    : druid_heal_t( "remove_corruption", p, p->find_class_spell( "Remove Corruption" ), options_str )
+  {}
 };
 
 // Renewal ==================================================================
@@ -6791,13 +6807,13 @@ struct convoke_the_spirits_t : public druid_spell_t
   {
     main_count   = 0;
     offspec_list = { CAST_HEAL, CAST_HEAL, CAST_RAKE, CAST_WRATH };
-    chances      = { { CAST_THRASH_BEAR, celestial_spirits ? 0.75 : 0.95 },
+    chances      = { { CAST_THRASH_BEAR, celestial_spirits ? 0.85 : 0.95 },
                      { CAST_IRONFUR, 1.0 },
                      { CAST_MANGLE, 1.0 }
                    };
-    // celestial spirits in bear form seems to result in avg 3 offspec.
+
     cast_list.insert( cast_list.end(),
-                      static_cast<int>( rng().range( celestial_spirits ? 2 : 5, celestial_spirits ? 5 : 7 ) ),
+                      static_cast<int>( rng().range( celestial_spirits ? 3.5 : 5, celestial_spirits ? 6 : 7 ) ),
                       CAST_OFFSPEC );
 
     if ( deck->trigger() && ( !p()->legendary.celestial_spirits->ok() || rng().roll( p()->celestial_spirits_exceptional_chance ) ) )
@@ -6857,16 +6873,15 @@ struct convoke_the_spirits_t : public druid_spell_t
                      { CAST_RAKE, 0.22 }
                    };
 
-    // with celestial spirits cat form convoke has ~3 offspec spells
     cast_list.insert( cast_list.end(),
-                      static_cast<size_t>( rng().range( celestial_spirits ? 1 : 4, celestial_spirits ? 6 : 9 ) ),
+                      static_cast<size_t>( rng().range( celestial_spirits ? 2.5 : 4, celestial_spirits ? 7.5 : 9 ) ),
                       CAST_OFFSPEC );
 
     if ( deck->trigger() && ( !p()->legendary.celestial_spirits->ok() || rng().roll( p()->celestial_spirits_exceptional_chance ) ) )
       cast_list.push_back( CAST_FERAL_FRENZY );
 
     cast_list.insert( cast_list.end(),
-                      _clamp_and_cast( rng().gauss( celestial_spirits ? 1.8 : 4.2, celestial_spirits ? 0.661789 : 0.9360890055, true ), 0, max_ticks - cast_list.size() ),
+                      _clamp_and_cast( rng().gauss( celestial_spirits ? 3 : 4.2, celestial_spirits ? 0.8 : 0.9360890055, true ), 0, max_ticks - cast_list.size() ),
                       CAST_MAIN );
   }
 
@@ -6900,7 +6915,7 @@ struct convoke_the_spirits_t : public druid_spell_t
 
   void _execute_moonkin()
   {
-    cast_list.insert( cast_list.end(), 5 - ( celestial_spirits ? 2 : 0 ), CAST_HEAL );
+    cast_list.insert( cast_list.end(), 5 - ( celestial_spirits ? 1 : 0 ), CAST_HEAL );
     off_count    = 0;
     main_count   = 0;
     filler_count = 0;
@@ -6913,7 +6928,7 @@ struct convoke_the_spirits_t : public druid_spell_t
   {
     convoke_cast_e type_ = base_type;
     std::vector<std::pair<convoke_cast_e, double>> dist;
-    unsigned adjust = celestial_spirits ? 2 : 0;
+    unsigned adjust = celestial_spirits ? 1 : 0;
 
     conv_tar = tl.at( rng().range( tl.size() ) );
 
@@ -6923,7 +6938,7 @@ struct convoke_the_spirits_t : public druid_spell_t
 
       if ( !p()->buff.starfall->check() )
       {
-        dist.emplace_back( std::make_pair( CAST_STARFALL, 3 + ( adjust / 2 ) ) );
+        dist.emplace_back( std::make_pair( CAST_STARFALL, 3 + adjust ) );
         add_more = false;
       }
 
@@ -7624,6 +7639,7 @@ action_t* druid_t::create_action( util::string_view name, const std::string& opt
   if ( name == "stampeding_roar"        ) return new        stampeding_roar_t( this, options_str );
   if ( name == "tiger_dash"             ) return new             tiger_dash_t( this, options_str );
   if ( name == "wild_charge"            ) return new            wild_charge_t( this, options_str );
+  if ( name == "remove_corruption"      ) return new      remove_corruption_t( this, options_str );
 
   // Multispec
   if ( name == "berserk" )
@@ -7891,6 +7907,8 @@ void druid_t::init_spells()
   legendary.kindred_affinity          = find_runeforge_legendary( "Kindred Affinity" );
   legendary.unbridled_swarm           = find_runeforge_legendary( "Unbridled Swarm" );
   legendary.celestial_spirits         = find_runeforge_legendary( "Celestial Spirits" );
+  if ( legendary.celestial_spirits->ok() )
+    sim->error( "Celestial Spirits has not been well tested. These results may not be accurate." );
   legendary.sinful_hysteria           = find_runeforge_legendary( "Sinful Hysteria" );
 
   // Balance
@@ -7963,7 +7981,8 @@ void druid_t::init_spells()
   spec.thrash_cat              = check_id( find_specialization_spell( "Thrash" )->ok(), 106830 );
   spec.berserk_cat             = find_specialization_spell( "Berserk" );
   spec.rake_dmg                = find_spell( 1822 )->effectN( 3 ).trigger();
-  spec.tigers_fury             = find_specialization_spell( "Tiger's Fury" );
+  // hardcode spell ID to allow tiger's fury buff for non-feral cat convoke
+  spec.tigers_fury             = check_id( specialization() == DRUID_FERAL || covenant.night_fae->ok(), 5217 );
   spec.savage_roar             = check_id( talent.savage_roar->ok(), 62071 );
   spec.bloodtalons             = check_id( talent.bloodtalons->ok(), 145152 );
 
@@ -8219,7 +8238,8 @@ void druid_t::create_buffs()
   buff.owlkin_frenzy = make_buff( this, "owlkin_frenzy", spec.owlkin_frenzy )
     ->set_chance( find_rank_spell( "Moonkin Form", "Rank 2" )->effectN( 1 ).percent() );
 
-  buff.primordial_arcanic_pulsar = make_buff( this, "primordial_arcanic_pulsar", find_spell( 338825 ) );
+  buff.primordial_arcanic_pulsar = make_buff( this, "primordial_arcanic_pulsar", find_spell( 338825 )) 
+    ->set_default_value(initial_pulsar_value);
 
   buff.solstice = make_buff( this, "solstice", talent.solstice->effectN( 1 ).trigger() );
 
@@ -8476,7 +8496,7 @@ void druid_t::create_actions()
     active.brambles_pulse = get_secondary_action<brambles_pulse_t>( "brambles_pulse" );
 
     instant_absorb_list.insert( std::make_pair<unsigned, instant_absorb_t>(
-        talent.brambles->id(), instant_absorb_t( this, talent.brambles, "brambles", &brambles_handler ) ) );
+        talent.brambles->id(), instant_absorb_t( this, talent.brambles, "brambles_absorb", &brambles_handler ) ) );
   }
 
   if ( legendary.the_natural_orders_will->ok() )
@@ -8532,8 +8552,11 @@ std::string druid_t::default_potion() const
       else if ( true_level >= 40 ) return "superior_battle_potion_of_intellect";
       SC_FALLTHROUGH;
     case DRUID_FERAL:
-    case DRUID_GUARDIAN:
       if      ( true_level >= 60 ) return "spectral_agility";
+      else if ( true_level >= 40 ) return "superior_battle_potion_of_agility";
+      SC_FALLTHROUGH;
+    case DRUID_GUARDIAN:
+      if      ( true_level >= 60 ) return "phantom_fire";
       else if ( true_level >= 40 ) return "superior_battle_potion_of_agility";
       SC_FALLTHROUGH;
     default:
@@ -8559,16 +8582,15 @@ std::string druid_t::default_rune() const
 
 std::string druid_t::default_temporary_enchant() const
 {
+  if ( true_level < 60 ) return "disabled";
+
   switch ( specialization() )
   {
-    case DRUID_BALANCE:
-    case DRUID_RESTORATION:
-    case DRUID_GUARDIAN:
-    case DRUID_FERAL:
-      if ( true_level >= 60 ) return "main_hand:shaded_sharpening_stone";
-      SC_FALLTHROUGH;
-    default:
-      return "disabled";
+    case DRUID_BALANCE: return "main_hand:shadowcore_oil";
+    case DRUID_RESTORATION: return "main_hand:shadowcore_oil";
+    case DRUID_GUARDIAN: return "main_hand:shadowcore_oil";
+    case DRUID_FERAL: return "main_hand:shaded_sharpening_stone";
+    default: return "disabled";
   }
 }
 
@@ -9739,6 +9761,7 @@ void druid_t::create_options()
   add_option( opt_int( "druid.convoke_the_spirits_deck", convoke_the_spirits_deck ) );
   add_option( opt_float( "druid.celestial_spirits_exceptional_chance", celestial_spirits_exceptional_chance ) );
   add_option( opt_float( "druid.adaptive_swarm_jump_distance", adaptive_swarm_jump_distance ) );
+  add_option( opt_float( "druid.initial_pulsar_value", initial_pulsar_value ) );
 }
 
 // druid_t::create_profile ==================================================
@@ -10351,7 +10374,8 @@ void druid_t::copy_from( player_t* source )
   celestial_spirits_exceptional_chance = p->celestial_spirits_exceptional_chance;
   adaptive_swarm_jump_distance         = p->adaptive_swarm_jump_distance;
   thorns_attack_period                 = p->thorns_attack_period;
-  thorns_hit_chance                    = p->thorns_hit_chance;
+  thorns_hit_chance                    = p->thorns_hit_chance; 
+  initial_pulsar_value                 = p->initial_pulsar_value;
 }
 
 void druid_t::output_json_report( js::JsonOutput& /*root*/ ) const
@@ -10667,7 +10691,11 @@ struct druid_module_t : public module_t
       ->set_default_value_from_effect_type( A_MOD_INCREASE_SPEED );
   }
   void static_init() const override {}
-  void register_hotfixes() const override {}
+
+  void register_hotfixes() const override
+  {
+  }
+
   void combat_begin( sim_t* ) const override {}
   void combat_end( sim_t* ) const override {}
 };

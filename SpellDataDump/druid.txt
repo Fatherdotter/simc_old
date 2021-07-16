@@ -1,4 +1,4 @@
-SimulationCraft 905-01 for World of Warcraft 9.1.0.39185 Live (hotfix 2021-06-29/39185, git build shadowlands f3b2614a, no-networking)
+SimulationCraft 910-01 for World of Warcraft 9.1.0.39335 Live (hotfix 2021-07-15/39335, git build shadowlands 080ea59a2b)
 
 Name             : Incapacitating Roar (id=99) [Spell Family (7)] 
 Class            : Guardian Druid
@@ -1344,7 +1344,6 @@ Attributes       : ....x... ........ ..x..... ........   ........ ..x..... .....
 Effects          :
 #1 (id=13048)    : Apply Aura (6) | Periodic Heal% (20): every 1 seconds
                    Base Value: 8 | Scaled Value: 8 | PvP Coefficient: 0.85000 | Target: Self (1)
-Hotfixed         : PvP Coefficient (1 -> 0.85)
 #2 (id=815630)   : Apply Aura (6) | Modify Healing Recevied% (118)
                    Base Value: 0 | Scaled Value: 0 | PvP Coefficient: 1.00000 | Misc Value: 127 | Target: Self (1)
 Description      : Heals you for $o1% health over $d$?s301768[, and increases healing received by $301768s1%][].
@@ -2078,7 +2077,7 @@ Attributes       : ......xx ........ ........ ........   ........ ........ .....
                  : ........ ........ ........ ........   
                  : Passive (6), Hidden (7)
 Effects          :
-#1 (id=48506)    : Apply Aura (6) | Modify Rating (189) | Scaling Class: -7
+#1 (id=48506)    : Apply Aura (6) | Modify Rating (189) | Scaling Class: -1
                    Base Value: 15 | Scaled Value: 5.795453 (coefficient=0.340909) | PvP Coefficient: 1.00000 | Misc Value: 1879048192 | Target: Self (1)
 Description      : Increases your Versatility by $s1.
 
@@ -4371,12 +4370,10 @@ Effects          :
                    Base Value: 40 | Scaled Value: 40 | Target: Self (1)
                    Affected Spells: Regrowth (8936)
                    Family Flags: 6
-Hotfixed         : PvP Coefficient (0.45 -> 0)
 #5 (id=191157)   : Apply Aura (6) | Add Percent Modifier (108): Spell Periodic Amount (22)
                    Base Value: 40 | Scaled Value: 40 | Misc Value: 22 | Target: Self (1)
                    Affected Spells: Regrowth (8936)
                    Family Flags: 6
-Hotfixed         : PvP Coefficient (0.45 -> 0)
 #6 (id=260767)   : Apply Aura (6) | Add Percent Modifier (108): Spell Resource Cost (14)
                    Base Value: 47 | Scaled Value: 47 | PvP Coefficient: 1.00000 | Misc Value: 14 | Target: Self (1)
                    Affected Spells: Regrowth (8936)
@@ -11833,7 +11830,6 @@ Effects          :
                    Base Value: 25 | Scaled Value: 25 | PvP Coefficient: 1.00000 | Target: Unknown(25)
                    Affected Spells: Rejuvenation (774), Frenzied Regeneration (22842), Lifebloom (33763), Lifebloom (33778), Wild Growth (48438), Efflorescence (81269), Cenarion Ward (102351), Cenarion Ward (102352), Ysera's Gift (145108), Ysera's Gift (145109), Ysera's Gift (145110), Tranquility (157982), Lifebloom (188550), Cultivation (200389), Overgrowth (203651), Spring Blossoms (207386), Brambles (213709), Grove Tending (279793), Primal Wrath (285381)
                    Family Flags: 4, 7, 8, 20, 36, 54, 58, 62, 65, 82, 106, 121
-Hotfixed         : Affects Spells
 Description      : $@spelldesc325727
 Tooltip          : Restoring $w1 health every $t1 sec and healing over time from $@auracaster increased by $w2%.
 
@@ -14054,6 +14050,7 @@ Description      : You and your Kindred Spirit each gain a bonus secondary stat 
 |CFFffffffNecrolord|r: Versatility increased by $357564s5%.
 
 Name             : Celestial Spirits (id=354118) [Spell Family (7), Passive, Hidden] 
+Hotfixed         : Description
 School           : Nature
 Spell Type       : None
 Attributes       : ......xx ........ ........ ........   ........ ........ ........ ........ 
@@ -14071,14 +14068,16 @@ Effects          :
                    Affected Spells: Convoke the Spirits (323764)
                    Family Flags: 16
 #2 (id=887116)   : Apply Aura (6) | Add Percent Modifier (108): Spell Effect 2 (12)
-                   Base Value: -50 | Scaled Value: -50 | PvP Coefficient: 1.00000 | Misc Value: 12 | Target: Self (1)
+                   Base Value: -25 | Scaled Value: -25 | PvP Coefficient: 1.00000 | Misc Value: 12 | Target: Self (1)
                    Affected Spells: Convoke the Spirits (323764)
                    Family Flags: 16
+Hotfixed         : Base Value (-50 -> -25)
 #3 (id=887117)   : Apply Aura (6) | Add Percent Modifier (108): Spell Duration (1)
-                   Base Value: -50 | Scaled Value: -50 | PvP Coefficient: 1.00000 | Misc Value: 1 | Target: Self (1)
+                   Base Value: -25 | Scaled Value: -25 | PvP Coefficient: 1.00000 | Misc Value: 1 | Target: Self (1)
                    Affected Spells: Convoke the Spirits (323764)
                    Family Flags: 16
-Description      : The cooldown and duration of Convoke the Spirits is reduced by $s2%. Convoke the Spirits has an increased chance to use an exceptional spell or ability.
+Hotfixed         : Base Value (-50 -> -25)
+Description      : Convoke the Spirits' cooldown is reduced by ${($abs($s1)/120000)*100}% and its duration is reduced by $s2%. Convoke the Spirits has an increased chance to use an exceptional spell or ability.
 
 Name             : Owlkin Adept (desc=PvP Talent) (id=354541) [Spell Family (7), Passive, Hidden] 
 Class            : Druid
