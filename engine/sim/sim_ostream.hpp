@@ -12,6 +12,7 @@
 #include "fmt/printf.h"
 
 #include <iosfwd>
+#include <utility>
 
 struct sim_t;
 
@@ -34,10 +35,13 @@ struct sc_raw_ostream_t {
     return *this;
   }
 
-  sc_raw_ostream_t( std::shared_ptr<std::ostream> os ) :
-    _stream( os ) {}
+  sc_raw_ostream_t( std::shared_ptr<std::ostream> os ) : _stream( std::move( os ) )
+  {
+  }
+
   const sc_raw_ostream_t operator=( std::shared_ptr<std::ostream> os )
   { _stream = os; return *this; }
+  
   std::ostream* get_stream()
   { return _stream.get(); }
 
@@ -78,7 +82,7 @@ struct sim_ostream_t
   sim_ostream_t& operator<< (const char* rhs);
 
   template <typename... Args>
-  sim_ostream_t& printf( fmt::format_string<Args...> format, Args&& ... args )
+  sim_ostream_t& printf( fmt::string_view format, Args&& ... args )
   {
     vprintf( format, fmt::make_printf_args( std::forward<Args>(args)... ) );
     return *this;

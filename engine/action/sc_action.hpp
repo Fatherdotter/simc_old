@@ -347,6 +347,10 @@ public:
   /// A second static action cooldown duration multiplier that also reduces the effectiveness of flat cooldown adjustments
   double base_recharge_rate_multiplier;
 
+  /// Dynamically adjustable action cooldown duration multipliers. These are reset to 1.0 in action_t::reset.
+  double dynamic_recharge_multiplier;
+  double dynamic_recharge_rate_multiplier;
+
   /// Maximum distance that the ability can travel. Used on abilities that instantly move you, or nearly instantly move you to a location.
   double base_teleport_distance;
 
@@ -606,6 +610,9 @@ public:
 
   void parse_spell_data( const spell_data_t& );
 
+  void parse_effect_direct_mods( const spelleffect_data_t& spelleffect_data, bool item_scaling );
+  void parse_effect_periodic_mods( const spelleffect_data_t& spelleffect_data, bool item_scaling );
+
   void parse_effect_data( const spelleffect_data_t& );
 
   void parse_target_str();
@@ -683,10 +690,10 @@ public:
   virtual double calculate_crit_damage_bonus( action_state_t* s ) const;
 
   virtual double recharge_multiplier( const cooldown_t& ) const
-  { return base_recharge_multiplier; }
+  { return base_recharge_multiplier * dynamic_recharge_multiplier; }
 
   virtual double recharge_rate_multiplier( const cooldown_t& ) const
-  { return base_recharge_rate_multiplier; }
+  { return base_recharge_rate_multiplier * dynamic_recharge_rate_multiplier; }
 
   /** Cooldown base duration for action based cooldowns. */
   virtual timespan_t cooldown_base_duration( const cooldown_t& cd ) const;

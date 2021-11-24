@@ -1336,9 +1336,9 @@ private:
     }
     for ( auto a : affected_actions )
     {
-      a->base_recharge_rate_multiplier /= rate_change;
+      a->dynamic_recharge_rate_multiplier /= rate_change;
 
-      sim->print_debug( "{} recharge_rate_multiplier set to {}", a->name_str, a->base_recharge_rate_multiplier );
+      sim->print_debug( "{} recharge_rate_multiplier set to {}", a->name_str, a->dynamic_recharge_rate_multiplier );
 
       if ( a->cooldown->action == a )
         a->cooldown->adjust_recharge_multiplier();
@@ -1519,6 +1519,7 @@ void priest_t::create_procs()
   procs.dark_thoughts_flay              = get_proc( "Dark Thoughts proc from Mind Flay" );
   procs.dark_thoughts_sear              = get_proc( "Dark Thoughts proc from Mind Sear" );
   procs.dark_thoughts_missed            = get_proc( "Dark Thoughts proc not consumed" );
+  procs.living_shadow                   = get_proc( "Living Shadow T28 4-set procs" );
 }
 
 /** Construct priest benefits */
@@ -1704,7 +1705,7 @@ double priest_t::matching_gear_multiplier( attribute_e attr ) const
   return 0.0;
 }
 
-action_t* priest_t::create_action( util::string_view name, const std::string& options_str )
+action_t* priest_t::create_action( util::string_view name, util::string_view options_str )
 {
   using namespace actions::spells;
   using namespace actions::heals;
@@ -2243,7 +2244,7 @@ void priest_t::copy_from( player_t* source )
 {
   base_t::copy_from( source );
 
-  priest_t* source_p = debug_cast<priest_t*>( source );
+  auto* source_p = debug_cast<priest_t*>( source );
 
   options = source_p->options;
 }
@@ -2376,9 +2377,9 @@ struct priest_module_t final : public module_t
   void init( player_t* p ) const override
   {
     p->buffs.guardian_spirit   = make_buff( p, "guardian_spirit",
-                                          p->find_spell( 47788 ) );  // Let the ability handle the CD
+                                            p->find_spell( 47788 ) );  // Let the ability handle the CD
     p->buffs.pain_suppression  = make_buff( p, "pain_suppression",
-                                           p->find_spell( 33206 ) );  // Let the ability handle the CD
+                                            p->find_spell( 33206 ) );  // Let the ability handle the CD
     p->buffs.benevolent_faerie = make_buff<buffs::benevolent_faerie_t>( p );
   }
   void static_init() const override
