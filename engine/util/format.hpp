@@ -9,14 +9,13 @@
 
 #include "fmt/core.h"
 
-namespace util { namespace fmt_detail {
-template <typename...> using void_t = void;
+namespace util::fmt_detail {
 template <typename T, typename = void> struct has_format_to : std::false_type {};
 template <typename T>
 struct has_format_to<T,
-  void_t<decltype( sc_format_to( std::declval<const T&>(),
-                              std::declval<::fmt::format_context::iterator>() ) ) > > : std::true_type {};
-} } // namespace util::fmt_detail
+  std::void_t<decltype( sc_format_to( std::declval<const T&>(),
+                                      std::declval<::fmt::format_context::iterator>() ) ) > > : std::true_type {};
+} // namespace util::fmt_detail
 
 namespace fmt {
 

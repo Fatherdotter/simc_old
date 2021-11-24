@@ -19,9 +19,7 @@
 
 #include "simulationcraft.hpp"
 
-namespace covenant
-{
-namespace soulbinds
+namespace covenant::soulbinds
 {
 namespace
 {
@@ -106,8 +104,8 @@ void add_covenant_cast_callback( player_t* p, S&&... args )
   }
 }
 
-double value_from_desc_vars( const special_effect_t& e, util::string_view var, util::string_view prefix = "",
-                             util::string_view postfix = "" )
+double value_from_desc_vars( const special_effect_t& e, util::string_view var, util::string_view prefix = {},
+                             util::string_view postfix = {} )
 {
   double value = 0;
 
@@ -688,7 +686,7 @@ void thrill_seeker( special_effect_t& effect )
     euphoria_buff->set_stack_change_callback( [ fatal_flaw_vers, fatal_flaw_crit ]( buff_t* b, int old, int cur ) {
       if ( cur < old )
       {
-        if ( b->player->cache.spell_crit_chance() >= b->player->cache.damage_versatility() )
+        if ( util::stat_value( b->player, STAT_CRIT_RATING ) >= util::stat_value( b->player, STAT_VERSATILITY_RATING ) )
           fatal_flaw_crit->trigger();
         else
           fatal_flaw_vers->trigger();
@@ -1282,7 +1280,7 @@ void brons_call_to_action( special_effect_t& effect )
   {
     struct bron_anima_cannon_t : public spell_t
     {
-      bron_anima_cannon_t( pet_t* p, const std::string& options_str )
+      bron_anima_cannon_t( pet_t* p, util::string_view options_str )
         : spell_t( "anima_cannon", p, p->find_spell( 332525 ) )
       {
         parse_options( options_str );
@@ -1365,7 +1363,7 @@ void brons_call_to_action( special_effect_t& effect )
 
     struct bron_smash_t : public spell_t
     {
-      bron_smash_t( pet_t* p, const std::string& options_str ) : spell_t( "smash_cast", p, p->find_spell( 341163 ) )
+      bron_smash_t( pet_t* p, util::string_view options_str ) : spell_t( "smash_cast", p, p->find_spell( 341163 ) )
       {
         parse_options( options_str );
 
@@ -1375,7 +1373,7 @@ void brons_call_to_action( special_effect_t& effect )
 
     struct bron_vitalizing_bolt_t : public heal_t
     {
-      bron_vitalizing_bolt_t( pet_t* p, const std::string& options_str )
+      bron_vitalizing_bolt_t( pet_t* p, util::string_view options_str )
         : heal_t( "vitalizing_bolt", p, p->find_spell( 332526 ) )
       {
         parse_options( options_str );
@@ -1506,7 +1504,7 @@ void brons_call_to_action( special_effect_t& effect )
       pet_t::init_action_list();
     }
 
-    action_t* create_action( util::string_view name, const std::string& options_str ) override
+    action_t* create_action( util::string_view name, util::string_view options_str ) override
     {
       if ( name == "travel" )
         return new bron_travel_t( this );
@@ -1842,7 +1840,7 @@ void kevins_oozeling( special_effect_t& effect )
   {
     struct kevins_wrath_t : public spell_t
     {
-      kevins_wrath_t( pet_t* p, const std::string& options_str ) : spell_t( "kevins_wrath", p, p->find_spell( 352520 ) )
+      kevins_wrath_t( pet_t* p, util::string_view options_str ) : spell_t( "kevins_wrath", p, p->find_spell( 352520 ) )
       {
         parse_options( options_str );
       }
@@ -1870,7 +1868,7 @@ void kevins_oozeling( special_effect_t& effect )
       pet_t::init_action_list();
     }
 
-    action_t* create_action( util::string_view name, const std::string& options_str ) override
+    action_t* create_action( util::string_view name, util::string_view options_str ) override
     {
       if ( name == "kevins_wrath" )
         return new kevins_wrath_t( this, options_str );
@@ -2547,7 +2545,7 @@ void register_special_effects()
   unique_gear::register_special_effect( 354257, soulbinds::deepening_bond );  // Kyrian Rank 5
 }
 
-action_t* create_action( player_t* player, util::string_view name, const std::string& options )
+action_t* create_action( player_t* player, util::string_view name, util::string_view options )
 {
   if ( util::str_compare_ci( name, "newfound_resolve" ) ) return new soulbinds::newfound_resolve_t( player, options );
 
@@ -2758,5 +2756,4 @@ void register_target_data_initializers( sim_t* sim )
   } );
 }
 
-}  // namespace soulbinds
 }  // namespace covenant

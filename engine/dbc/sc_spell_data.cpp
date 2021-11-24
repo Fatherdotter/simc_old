@@ -70,7 +70,7 @@ struct mem_fn_t {
 
   template <typename... Args>
   decltype(auto) operator()( Args&&... args ) const {
-    return range::invoke( Pm, std::forward<Args>(args)... );
+    return std::invoke( Pm, std::forward<Args>(args)... );
   }
 };
 
@@ -384,7 +384,7 @@ uint64_t race_str_to_mask( util::string_view str )
 {
   int race_id = -1;
 
-  for ( unsigned int i = 0; i < range::size( _race_strings ); ++i )
+  for ( unsigned int i = 0; i < std::size( _race_strings ); ++i )
   {
     if ( _race_strings[ i ].empty() )
       continue;
@@ -1118,7 +1118,7 @@ std::unique_ptr<spell_data_expr_t> build_expression_tree(
 
 } // anonymous namespace ====================================================
 
-void format_to( expr_data_e expr_type, fmt::format_context::iterator out )
+void sc_format_to( expr_data_e expr_type, fmt::format_context::iterator out )
 {
   fmt::format_to( out, "{}", data_type_str( expr_type ) );
 }

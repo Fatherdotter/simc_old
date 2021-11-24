@@ -468,7 +468,7 @@ void shield_of_the_righteous_buff_t::expire_override( int expiration_stacks, tim
 {
   buff_t::expire_override( expiration_stacks, remaining_duration );
 
-  paladin_t* p = debug_cast< paladin_t* >( player );
+  auto* p = debug_cast<paladin_t*>( player );
 
   if ( p -> azerite.inner_light.enabled() )
   {
@@ -786,7 +786,7 @@ void paladin_t::create_prot_actions()
   active.divine_resonance = new avengers_shield_dr_t( this );
 }
 
-action_t* paladin_t::create_action_protection( util::string_view name, const std::string& options_str )
+action_t* paladin_t::create_action_protection( util::string_view name, util::string_view options_str )
 {
   if ( name == "ardent_defender"           ) return new ardent_defender_t          ( this, options_str );
   if ( name == "avengers_shield"           ) return new avengers_shield_t          ( this, options_str );

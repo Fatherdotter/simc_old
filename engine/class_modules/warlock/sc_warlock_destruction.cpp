@@ -743,11 +743,11 @@ struct summon_infernal_t : public destruction_spell_t
     if ( infernal_awakening )
       infernal_awakening->execute();
 
-    for ( size_t i = 0; i < p()->warlock_pet_list.infernals.size(); i++ )
+    for ( auto* infernal : p()->warlock_pet_list.infernals )
     {
-      if ( p()->warlock_pet_list.infernals[ i ]->is_sleeping() )
+      if ( infernal->is_sleeping() )
       {
-        p()->warlock_pet_list.infernals[ i ]->summon( infernal_duration );
+        infernal->summon( infernal_duration );
       }
     }
 
@@ -988,7 +988,7 @@ namespace buffs
 }  // namespace buffs
 
 // add actions
-action_t* warlock_t::create_action_destruction( util::string_view action_name, const std::string& options_str )
+action_t* warlock_t::create_action_destruction( util::string_view action_name, util::string_view options_str )
 {
   using namespace actions_destruction;
 

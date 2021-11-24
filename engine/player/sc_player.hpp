@@ -533,9 +533,10 @@ struct player_t : public actor_t
     buff_t* norgannons_sagacity;         // consume stacks to allow casting while moving
     buff_t* echo_of_eonar;               // passive self buff
 
-    // 9.1 Legendary Party Buffs
+    // 9.1 Legendary Buffs
     buff_t* pact_of_the_soulstalkers; // Kyrian Hunter Legendary
     buff_t* kindred_affinity;         // Kyrian Druid Legendary
+    buff_t* equinox;                  // Night Fae Paladin Legendary
 
     // 9.1 Shards of Domination
     buff_t* coldhearted; // Shard of Cor
@@ -565,6 +566,8 @@ struct player_t : public actor_t
   struct external_buffs_t
   {
     bool focus_magic;
+    bool seasons_of_plenty;
+    double blessing_of_summer_duration_multiplier;
     std::vector<timespan_t> power_infusion;
     std::vector<timespan_t> benevolent_faerie;
     std::vector<timespan_t> blessing_of_summer;
@@ -717,8 +720,8 @@ public:
   void change_position( position_e );
   void register_resource_callback(resource_e resource, double value, resource_callback_function_t callback,
       bool use_pct, bool fire_once = true);
-  bool add_action( util::string_view action, util::string_view options = "", util::string_view alist = "default" );
-  bool add_action( const spell_data_t* s, util::string_view options = "", util::string_view alist = "default" );
+  bool add_action( util::string_view action, util::string_view options = {}, util::string_view alist = "default" );
+  bool add_action( const spell_data_t* s, util::string_view options = {}, util::string_view alist = "default" );
   void add_option( std::unique_ptr<option_t> o );
   void parse_talents_numbers( util::string_view talent_string );
   bool parse_talents_armory( util::string_view talent_string );
@@ -1079,9 +1082,9 @@ public:
 
   virtual void copy_from( player_t* source );
 
-  virtual action_t* create_action( util::string_view name, const std::string& options );
+  virtual action_t* create_action( util::string_view name, util::string_view options );
   virtual void      create_pets() { }
-  virtual pet_t*    create_pet( util::string_view name,  util::string_view type = "" );
+  virtual pet_t*    create_pet( util::string_view name,  util::string_view type = {} );
 
   virtual void armory_extensions( const std::string& /* region */, const std::string& /* server */, const std::string& /* character */,
                                   cache::behavior_e /* behavior */ = cache::players() )

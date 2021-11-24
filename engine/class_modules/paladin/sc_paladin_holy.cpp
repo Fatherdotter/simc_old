@@ -528,7 +528,7 @@ void paladin_t::create_holy_actions()
   }
 }
 
-action_t* paladin_t::create_action_holy( util::string_view name, const std::string& options_str )
+action_t* paladin_t::create_action_holy( util::string_view name, util::string_view options_str )
 {
   if ( name == "beacon_of_light" )
     return new beacon_of_light_t( this, options_str );
@@ -721,12 +721,12 @@ void paladin_t::generate_action_prio_list_holy()
   }
 
   std::vector<std::string> profession_actions = get_profession_actions();
-  for ( size_t i = 0; i < profession_actions.size(); i++ )
-    def->add_action( profession_actions[ i ] );
+  for ( const auto& profession_action : profession_actions )
+    def->add_action( profession_action );
 
   std::vector<std::string> racial_actions = get_racial_actions();
-  for ( size_t i = 0; i < racial_actions.size(); i++ )
-    def->add_action( racial_actions[ i ] );
+  for ( const auto& racial_action : racial_actions )
+    def->add_action( racial_action );
 
   // this is just sort of made up to test things - a real Holy dev should probably come up with something useful here
   // eventually Workin on it. Phillipuh to-do
